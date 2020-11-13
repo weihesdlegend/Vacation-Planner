@@ -8,15 +8,16 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/go-redis/redis/v8"
-	log "github.com/sirupsen/logrus"
-	"github.com/weihesdlegend/Vacation-planner/POI"
-	"github.com/weihesdlegend/Vacation-planner/utils"
 	"net/url"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/go-redis/redis/v8"
+	log "github.com/sirupsen/logrus"
+	"github.com/weihesdlegend/Vacation-planner/POI"
+	"github.com/weihesdlegend/Vacation-planner/utils"
 )
 
 const (
@@ -53,7 +54,15 @@ func CreateRedisClient(url *url.URL) RedisClient {
 	})}
 }
 
-// analytics of total number of unique visitors to the planning APIs in the last 24 hours
+// PlanningEvent models a user planning event
+type PlanningEvent struct {
+	User      string `json:"user"`
+	City      string `json:"city"`
+	Country   string `json:"country"`
+	Timestamp string `json:"timestamp"`
+}
+
+// CollectPlanningAPIStats generates analytics of total number of unique visitors to the planning APIs in the last 24 hours
 // analytics of number of unique users planning for each city
 func (redisClient *RedisClient) CollectPlanningAPIStats(event PlanningEvent) {
 	c := redisClient.client
