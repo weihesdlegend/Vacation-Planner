@@ -132,7 +132,50 @@ func (planner *MyPlanner) SingleDayNearbySearchHandler(context *gin.Context) {
 	}
 	context.JSON(http.StatusOK, gin.H{"places": places})
 }
+func (planner *MyPlanner) SingleDayTimeCostPlanHandler(context *gin.Context) {
+	country := context.DefaultQuery("country", "USA")
+	city := context.DefaultQuery("city", "San Diego")
+	radius := context.DefaultQuery("radius", "10000")
+	weekday := context.DefaultQuery("weekday", "5") // Saturday
+	budget := context.DefaultQuery("budget", "1500")
+	starthourstr := context.DefaultQuery("starthour", "8")
+	endhourstr := context.DefaultQuery("endhour", "21")
+	startHour, _ := strconv.ParseUint(starthourstr, 10, 8)
+	endHour, _ := strconv.ParseUint(endhourstr, 10, 8)
+	weekdayUint, weekdayParsingErr := strconv.ParseUint(weekday, 10, 8)
+	if weekdayParsingErr != nil || weekdayUint < 0 || weekdayUint > 6 {
+		context.String(http.StatusBadRequest, "invalid weekday of %d", weekdayUint)
+		return
+	}
+	searchRadius_, _ := strconv.ParseUint(radius, 10, 32)
+	location := strings.Join([]string{city, country}, ",")
+	budgetUint, budgetParsingErr := strconv.ParseUint(budget, 10, 32)
+	if budgetParsingErr != nil {
+		context.String(http.StatusBadRequest, "invalid input of budget %s", budget)
+		return
+	}
+	places, err := solution.NearbySearchAllCategories(context, planner.Solver.Matcher, location, POI.Weekday(weekdayUint), uint(searchRadius_), matching.TimeSlot{Slot: POI.TimeInterval{
+		Start: POI.Hour(startHour),
+		End:   POI.Hour(endHour),
+	}})
+	if err != nil {
+		context.String(http.StatusBadRequest, err.Error())
+		return
+	}
+	knapsackInterval := matching.QueryTimeInterval{
+		Day: POI.Weekday(weekdayUint),
+		StartHour: uint8(startHour),
+		EndHour: uint8(endHour),
+	}
 
+	//do knapsack
+	result, totalCost, totalTimeSpent:= matching.Knapsack(places, knapsackInterval, uint(budgetUint))
+	if result == nil {
+		context.JSON(http.StatusInternalServerError, "no plan could be provided")
+		return
+	}
+	context.JSON(http.StatusOK, gin.H{"Time Budget Plan": result, "Cost":totalCost, "Time":totalTimeSpent})
+}
 func (planner *MyPlanner) Destroy() {
 	iowrappers.DestroyLogger()
 	planner.RedisClient.Destroy()
@@ -426,6 +469,7 @@ func (planner MyPlanner) SetupRouter(serverPort string) *http.Server {
 		v1.GET("/single-day-nearby-search", planner.SingleDayNearbySearchHandler)
 		v1.GET("/log-in", planner.login)
 		v1.GET("/sign-up", planner.signup)
+		v1.GET("/time-budget-plan", planner.SingleDayTimeCostPlanHandler)
 		migrations := v1.Group("/migrate")
 		{
 			migrations.GET("/user-ratings-total", planner.UserRatingsTotalMigrationHandler)

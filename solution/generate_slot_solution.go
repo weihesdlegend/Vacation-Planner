@@ -156,3 +156,21 @@ func NearbySearchWithPlaceView(context context.Context, timeMatcher *matching.Ti
 	}
 	return placesView, nil
 }
+
+// NearbySearchAllCategories returns places results for a single day with a fixed time slot range
+func NearbySearchAllCategories(context context.Context, timeMatcher *matching.TimeMatcher, location string,
+	weekday POI.Weekday, radius uint, timeSlot matching.TimeSlot) ([]matching.Place, error) {
+	timeSlots := []matching.TimeSlot{timeSlot}
+	categorizedPlaces, _ := generateCategorizedPlaces(context, timeMatcher, location, radius, weekday, timeSlots)
+	var err error
+	if len(categorizedPlaces) != 1 {
+		return nil, errors.New("we should only get one set of categorized places")
+	}
+	var places []matching.Place
+	places = append(places, categorizedPlaces[0].EateryPlaces...)
+	places = append(places, categorizedPlaces[0].VisitPlaces...)
+	if len(places) == 0 {
+		err = errors.New("no places found at current location and time")
+	}
+	return places, err
+}
