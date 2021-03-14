@@ -26,6 +26,30 @@ func Score(places []Place) float64 {
 	return avgScore - avgDistance
 }
 
+func ScoreNoDistance(places []Place) float64 {
+	if len(places) == 1 {
+		return singlePlaceScore(places[0])
+	}
+	res := float64(0)
+	for _, place:= range places{
+		res += singlePlaceScoreKnapSack(place)
+	}
+	return res
+}
+
+func scaleScoreNoCompensation(place Place) float64 {
+	var res float64
+	var placeRating float64
+	placeRating = float64(place.GetRating())
+	res = math.Log10(1.25 + float64(place.GetUserRatingsCount())) * placeRating
+	//fmt.Printf("Place %s, score: %f\n",place.Place.Name, res)
+	return res
+}
+
+func singlePlaceScoreKnapSack(place Place) float64 {
+	return scaleScoreNoCompensation(place)
+}
+
 func singlePlaceScore(place Place) float64 {
 	var ratingPricingRatio float64
 	if place.GetPrice() == 0 {
