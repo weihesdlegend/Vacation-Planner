@@ -132,34 +132,36 @@ func (planner *MyPlanner) SingleDayNearbySearchHandler(context *gin.Context) {
 	}
 	context.JSON(http.StatusOK, gin.H{"places": places})
 }
-func (planner *MyPlanner) SingleDayTimeCostPlanHandler(context *gin.Context) {
-	country := context.DefaultQuery("country", "USA")
-	city := context.DefaultQuery("city", "San Diego")
-	radius := context.DefaultQuery("radius", "10000")
-	weekday := context.DefaultQuery("weekday", "5") // Saturday
-	budget := context.DefaultQuery("budget", "1500")
-	starthourstr := context.DefaultQuery("starthour", "8")
-	endhourstr := context.DefaultQuery("endhour", "21")
+func (planner *MyPlanner) SingleDayTimeCostPlanHandler(ctx *gin.Context) {
+	requestId := requestid.Get(ctx)
+	country := ctx.DefaultQuery("country", "USA")
+	city := ctx.DefaultQuery("city", "San Diego")
+	radius := ctx.DefaultQuery("radius", "10000")
+	weekday := ctx.DefaultQuery("weekday", "5") // Saturday
+	budget := ctx.DefaultQuery("budget", "1500")
+	starthourstr := ctx.DefaultQuery("starthour", "8")
+	endhourstr := ctx.DefaultQuery("endhour", "21")
 	startHour, _ := strconv.ParseUint(starthourstr, 10, 8)
 	endHour, _ := strconv.ParseUint(endhourstr, 10, 8)
 	weekdayUint, weekdayParsingErr := strconv.ParseUint(weekday, 10, 8)
 	if weekdayParsingErr != nil || weekdayUint < 0 || weekdayUint > 6 {
-		context.String(http.StatusBadRequest, "invalid weekday of %d", weekdayUint)
+		ctx.String(http.StatusBadRequest, "invalid weekday of %d", weekdayUint)
 		return
 	}
 	searchRadius_, _ := strconv.ParseUint(radius, 10, 32)
 	location := strings.Join([]string{city, country}, ",")
 	budgetUint, budgetParsingErr := strconv.ParseUint(budget, 10, 32)
 	if budgetParsingErr != nil {
-		context.String(http.StatusBadRequest, "invalid input of budget %s", budget)
+		ctx.String(http.StatusBadRequest, "invalid input of budget %s", budget)
 		return
 	}
-	places, err := solution.NearbySearchAllCategories(context, planner.Solver.Matcher, location, POI.Weekday(weekdayUint), uint(searchRadius_), matching.TimeSlot{Slot: POI.TimeInterval{
+	c := context.WithValue(ctx, "request_id", requestId)
+	places, err := solution.NearbySearchAllCategories(c, planner.Solver.Matcher, location, POI.Weekday(weekdayUint), uint(searchRadius_), matching.TimeSlot{Slot: POI.TimeInterval{
 		Start: POI.Hour(startHour),
 		End:   POI.Hour(endHour),
 	}})
 	if err != nil {
-		context.String(http.StatusBadRequest, err.Error())
+		ctx.String(http.StatusBadRequest, err.Error())
 		return
 	}
 	knapsackInterval := matching.QueryTimeInterval{
@@ -171,10 +173,10 @@ func (planner *MyPlanner) SingleDayTimeCostPlanHandler(context *gin.Context) {
 	//do knapsack
 	result, totalCost, totalTimeSpent:= matching.Knapsack(places, knapsackInterval, uint(budgetUint))
 	if result == nil {
-		context.JSON(http.StatusInternalServerError, "no plan could be provided")
+		ctx.JSON(http.StatusInternalServerError, "no plan could be provided")
 		return
 	}
-	context.JSON(http.StatusOK, gin.H{"Time Budget Plan": result, "Cost":totalCost, "Time":totalTimeSpent})
+	ctx.JSON(http.StatusOK, gin.H{"Time Budget Plan": result, "Cost":totalCost, "Time":totalTimeSpent})
 }
 func (planner *MyPlanner) Destroy() {
 	iowrappers.DestroyLogger()
