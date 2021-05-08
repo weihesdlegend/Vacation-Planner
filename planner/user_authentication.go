@@ -18,7 +18,7 @@ type UserLoginResponse struct {
 	Status   string `json:"status"`
 }
 
-// user signup POST request handler
+// UserSignup handles user signup POST requests
 // user submit username/password/email and user is created
 // return bad request if creation fails
 func (planner MyPlanner) UserSignup(context *gin.Context) {
@@ -48,7 +48,7 @@ func (planner MyPlanner) UserSignup(context *gin.Context) {
 	context.JSON(http.StatusCreated, gin.H{"user creation success": u.Username})
 }
 
-// user login POST request handler
+// UserLogin handles login POST requests
 // user submit credentials and return JWT if login is successful
 func (planner MyPlanner) UserLogin(context *gin.Context) {
 	c := user.Credential{}
@@ -88,7 +88,7 @@ func (planner MyPlanner) UserLogin(context *gin.Context) {
 	})
 }
 
-// internal method for API to authenticate users at different levels
+// UserAuthentication is an internal method for API to authenticate users at different levels
 func (planner MyPlanner) UserAuthentication(context context.Context, r *http.Request, minimumUserLevel user.Level) (username string, err error) {
 	cookie, cookieErr := r.Cookie("JWT")
 	if cookieErr != nil {

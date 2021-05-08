@@ -25,8 +25,8 @@ func (error Error) Error() (res string) {
 	return res
 }
 
-// check if error is nil and log error with severity if not
-func CheckErrImmediate(err error, level uint) bool {
+// LogErrorWithLevel logs error with severity if not nil
+func LogErrorWithLevel(err error, level uint) bool {
 	if err != nil {
 		switch level {
 		case LogPanic:

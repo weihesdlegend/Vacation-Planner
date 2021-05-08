@@ -41,7 +41,7 @@ func (m *LocationMatcher) Matching(req *LocationMatchingRequest, mapsClient *iow
 	// pair cluster centers from two categories
 	clusterPairs, err := MatchClusterCenters(*m.VisitClusterMgr.ClusterCenters, *m.EateryClusterMgr.ClusterCenters)
 
-	utils.CheckErrImmediate(err, utils.LogError)
+	utils.LogErrorWithLevel(err, utils.LogError)
 
 	for _, clusterPair := range clusterPairs {
 		placePairs = append(placePairs, m.genPlacePairs(&clusterPair)...)

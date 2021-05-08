@@ -15,7 +15,7 @@ func ReadCsv(filename string) (res [][]string) {
 		return
 	}
 	csvFile, err := os.Open(filename)
-	CheckErrImmediate(err, LogFatal)
+	LogErrorWithLevel(err, LogFatal)
 
 	defer csvFile.Close()
 
@@ -38,10 +38,10 @@ func ReadCsv(filename string) (res [][]string) {
 func WriteCsv(filename string, records [][]string) {
 	if !checkExist(filename) {
 		_, err := os.Create(filename)
-		CheckErrImmediate(err, LogFatal)
+		LogErrorWithLevel(err, LogFatal)
 	}
 	file, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
-	CheckErrImmediate(err, LogFatal)
+	LogErrorWithLevel(err, LogFatal)
 
 	// close file after writing is done
 	defer file.Close()
@@ -52,7 +52,7 @@ func WriteCsv(filename string, records [][]string) {
 
 	for _, line := range records {
 		err := writer.Write(line)
-		CheckErrImmediate(err, LogFatal)
+		LogErrorWithLevel(err, LogFatal)
 	}
 }
 

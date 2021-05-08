@@ -197,13 +197,13 @@ func PlaceDetailedSearch(context context.Context, mapsClient *MapsClient, placeI
 	}
 	if detailedSearchFields != "" {
 		fieldMask, err := parseFields(detailedSearchFields)
-		utils.CheckErrImmediate(err, utils.LogError)
+		utils.LogErrorWithLevel(err, utils.LogError)
 		req.Fields = fieldMask
 	}
 
 	startSearchTime := time.Now()
 	resp, err := mapsClient.client.PlaceDetails(context, req)
-	utils.CheckErrImmediate(err, utils.LogError)
+	utils.LogErrorWithLevel(err, utils.LogError)
 
 	searchDuration := time.Since(startSearchTime)
 
@@ -266,5 +266,5 @@ func parseFields(fields string) ([]maps.PlaceDetailsFieldMask, error) {
 }
 
 func logErr(err error, logLevel uint) bool {
-	return utils.CheckErrImmediate(err, logLevel)
+	return utils.LogErrorWithLevel(err, logLevel)
 }

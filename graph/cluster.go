@@ -70,11 +70,11 @@ func (placeManager *ClustersManager) PlaceSearch(location string, searchRadius u
 func (placeManager *ClustersManager) Clustering(geoLocationData *[][]float64, numClusters int) (clusterResult []int, clusterSizes []int) {
 	// obtain clusterer with number of Clusters and distance function
 	hardCluster, err := clusters.KMeans(1000, numClusters, utils.HaversineDist)
-	utils.CheckErrImmediate(err, utils.LogError)
+	utils.LogErrorWithLevel(err, utils.LogError)
 
 	// training
 	err = hardCluster.Learn(*geoLocationData)
-	utils.CheckErrImmediate(err, utils.LogError)
+	utils.LogErrorWithLevel(err, utils.LogError)
 
 	// save membership info
 	for locationIdx, clusterIdx := range hardCluster.Guesses() {
@@ -103,7 +103,7 @@ func (placeManager *ClustersManager) FindClusterCenter(geoLocationData *[][]floa
 
 	for i := 0; i < placeManager.PlaceClusters.Size(); i++ {
 		center, err := utils.FindCenter(groups[i])
-		utils.CheckErrImmediate(err, utils.LogError)
+		utils.LogErrorWithLevel(err, utils.LogError)
 		clusterCenters[i] = center
 	}
 	placeManager.ClusterCenters = &clusterCenters

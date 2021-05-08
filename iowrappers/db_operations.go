@@ -68,7 +68,7 @@ func (dbHandler DbHandler) CreatePlanningEvent(event PlanningEvent) {
 
 func (dbHandler *DbHandler) CreateSession(uri string) {
 	session, err := mgo.Dial(uri)
-	utils.CheckErrImmediate(err, utils.LogError)
+	utils.LogErrorWithLevel(err, utils.LogError)
 	dbHandler.Session = session
 }
 
@@ -262,6 +262,6 @@ func (collHandler *CollHandler) Search(radius uint, latitude float64, longitude 
 		},
 	}
 	coll := collHandler.GetCollection()
-	utils.CheckErrImmediate(coll.Find(query).All(&places), utils.LogError)
+	utils.LogErrorWithLevel(coll.Find(query).All(&places), utils.LogError)
 	return
 }

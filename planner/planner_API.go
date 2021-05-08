@@ -107,7 +107,7 @@ func (planner *MyPlanner) SingleDayNearbySearchHandler(context *gin.Context) {
 	category := strings.ToLower(context.DefaultQuery("category", "visit"))
 
 	weekdayUint, weekdayParsingErr := strconv.ParseUint(weekday, 10, 8)
-	if weekdayParsingErr != nil || weekdayUint < 0 || weekdayUint > 6 {
+	if weekdayParsingErr != nil || weekdayUint > 6 {
 		context.String(http.StatusBadRequest, "invalid weekday of %d", weekdayUint)
 		return
 	}
@@ -268,7 +268,7 @@ func (planner *MyPlanner) CityStatsHandler(context *gin.Context) {
 	context.JSON(http.StatusOK, view)
 }
 
-// single-day, single-city planning method
+// Planning solves the single-day, single-city planning task
 func (planner *MyPlanner) Planning(ctx context.Context, planningRequest *solution.PlanningRequest, user string) (resp PlanningResponse) {
 	var planningResponse solution.PlanningResponse
 
@@ -341,21 +341,22 @@ func (planner *MyPlanner) postPlanningApi(context *gin.Context) {
 		var authenticationErr error
 		username, authenticationErr = planner.UserAuthentication(context, context.Request, user.LevelRegular)
 		if authenticationErr != nil {
-			context.JSON(http.StatusUnauthorized, gin.H{"error": authenticationErr.Error()})
+			utils.LogErrorWithLevel(authenticationErr, utils.LogDebug)
+			planner.login(context)
 			return
 		}
 	}
 
 	req := PlanningPostRequest{}
 	err := context.ShouldBindJSON(&req)
-	utils.CheckErrImmediate(err, utils.LogInfo)
+	utils.LogErrorWithLevel(err, utils.LogInfo)
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	planningReq, err := processPlanningPostRequest(&req)
-	utils.CheckErrImmediate(err, utils.LogInfo)
+	utils.LogErrorWithLevel(err, utils.LogInfo)
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -367,7 +368,7 @@ func (planner *MyPlanner) postPlanningApi(context *gin.Context) {
 		return
 	}
 	// generate valid solution
-	utils.CheckErrImmediate(planner.ResultHTMLTemplate.Execute(context.Writer, planningResp), utils.LogError)
+	utils.LogErrorWithLevel(planner.ResultHTMLTemplate.Execute(context.Writer, planningResp), utils.LogError)
 }
 
 // HTTP GET API end-point
@@ -378,7 +379,8 @@ func (planner *MyPlanner) getPlanningApi(ctx *gin.Context) {
 		var authenticationErr error
 		username, authenticationErr = planner.UserAuthentication(ctx, ctx.Request, user.LevelRegular)
 		if authenticationErr != nil {
-			ctx.JSON(http.StatusUnauthorized, gin.H{"error": authenticationErr.Error()})
+			utils.LogErrorWithLevel(authenticationErr, utils.LogDebug)
+			planner.login(ctx)
 			return
 		}
 	}
@@ -398,7 +400,7 @@ func (planner *MyPlanner) getPlanningApi(ctx *gin.Context) {
 	iowrappers.Logger.Debugf("[%s] number of requested planning results is %s", requestId, numResults)
 
 	weekdayUint, weekdayParsingErr := strconv.ParseUint(weekday, 10, 8)
-	if weekdayParsingErr != nil || weekdayUint < 0 || weekdayUint > 6 {
+	if weekdayParsingErr != nil || weekdayUint > 6 {
 		ctx.String(http.StatusBadRequest, "invalid weekday of %d", weekdayUint)
 		return
 	}
@@ -432,7 +434,7 @@ func (planner *MyPlanner) getPlanningApi(ctx *gin.Context) {
 		return
 	}
 
-	utils.CheckErrImmediate(planner.ResultHTMLTemplate.Execute(ctx.Writer, planningResp), utils.LogError)
+	utils.LogErrorWithLevel(planner.ResultHTMLTemplate.Execute(ctx.Writer, planningResp), utils.LogError)
 }
 
 func (planner *MyPlanner) login(c *gin.Context) {

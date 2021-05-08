@@ -17,13 +17,13 @@ func (mapsClient MapsClient) GetGeocode(ctx context.Context, query *GeocodeQuery
 
 	resp, err := mapsClient.client.Geocode(ctx, req)
 	if err != nil {
-		utils.CheckErrImmediate(err, utils.LogError)
+		utils.LogErrorWithLevel(err, utils.LogError)
 		return
 	}
 
 	if len(resp) < 1 {
 		err = errors.New("maps geo-coding response invalid")
-		utils.CheckErrImmediate(err, utils.LogError)
+		utils.LogErrorWithLevel(err, utils.LogError)
 		return
 	}
 

@@ -84,7 +84,7 @@ func (redisClient *RedisClient) RemoveKeys(context context.Context, keys []strin
 func (redisClient *RedisClient) setPlace(context context.Context, place POI.Place, wg *sync.WaitGroup) {
 	defer wg.Done()
 	json_, err := json.Marshal(place)
-	utils.CheckErrImmediate(err, utils.LogError)
+	utils.LogErrorWithLevel(err, utils.LogError)
 
 	_, err = redisClient.client.Set(context, "place_details:place_ID:"+place.ID, json_, 0).Result()
 	if err != nil {
@@ -157,7 +157,7 @@ func (redisClient *RedisClient) SetPlacesOnCategory(context context.Context, pla
 		redisKey := "placeIDs:" + strings.ToLower(string(placeCategory))
 		_, cmdErr := redisClient.client.GeoAdd(context, redisKey, geolocation).Result()
 
-		utils.CheckErrImmediate(cmdErr, utils.LogError)
+		utils.LogErrorWithLevel(cmdErr, utils.LogError)
 
 		redisClient.setPlace(context, place, wg)
 	}
@@ -167,11 +167,11 @@ func (redisClient *RedisClient) SetPlacesOnCategory(context context.Context, pla
 // obtain place info from Redis based with key place_details:place_ID:placeID
 func (redisClient *RedisClient) getPlace(context context.Context, placeId string) (place POI.Place, err error) {
 	res, err := redisClient.client.Get(context, "place_details:place_ID:"+placeId).Result()
-	utils.CheckErrImmediate(err, utils.LogError)
+	utils.LogErrorWithLevel(err, utils.LogError)
 	if err != nil {
 		return
 	}
-	utils.CheckErrImmediate(json.Unmarshal([]byte(res), &place), utils.LogError)
+	utils.LogErrorWithLevel(json.Unmarshal([]byte(res), &place), utils.LogError)
 	return
 }
 
@@ -302,13 +302,13 @@ func (redisClient *RedisClient) SetGeocode(context context.Context, query Geocod
 	redisField := strings.ToLower(strings.Join([]string{query.City, query.Country}, "_"))
 	redisVal := strings.Join([]string{fmt.Sprintf("%.6f", lat), fmt.Sprintf("%.6f", lng)}, ",") // 1/9 meter precision
 	_, err := redisClient.client.HSet(context, redisKey, redisField, redisVal).Result()
-	utils.CheckErrImmediate(err, utils.LogError)
+	utils.LogErrorWithLevel(err, utils.LogError)
 	if err != nil {
 		Logger.Errorf("Failed to cache geolocation for location %s, %s", query.City, query.Country)
 	} else {
 		Logger.Infof("Cached geolocation for location %s, %s success", query.City, query.Country)
 	}
-	utils.CheckErrImmediate(redisClient.CacheLocationAlias(context, originalQuery, query), utils.LogError)
+	utils.LogErrorWithLevel(redisClient.CacheLocationAlias(context, originalQuery, query), utils.LogError)
 }
 
 // returns redis streams ID if XADD command execution is successful
@@ -377,7 +377,7 @@ func encodeTimeCatIdx(eVTag []string, intervals []POI.TimeInterval) (res int64, 
 func genSlotSolutionCacheKey(req SlotSolutionCacheRequest) string {
 	country, city := req.Country, req.City
 	timeCatIdx, err := encodeTimeCatIdx(req.EVTags, req.Intervals)
-	utils.CheckErrImmediate(err, utils.LogError)
+	utils.LogErrorWithLevel(err, utils.LogError)
 
 	radius := strconv.FormatUint(req.Radius, 10)
 	timeCatIdxStr := strconv.FormatInt(timeCatIdx, 10)
@@ -390,7 +390,7 @@ func genSlotSolutionCacheKey(req SlotSolutionCacheRequest) string {
 func (redisClient *RedisClient) CacheSlotSolution(context context.Context, req SlotSolutionCacheRequest, solution SlotSolutionCacheResponse) {
 	redisKey := genSlotSolutionCacheKey(req)
 	json_, err := json.Marshal(solution)
-	utils.CheckErrImmediate(err, utils.LogError)
+	utils.LogErrorWithLevel(err, utils.LogError)
 
 	if err != nil {
 		Logger.Errorf("cache slot solution failure for request with key: %s", redisKey)

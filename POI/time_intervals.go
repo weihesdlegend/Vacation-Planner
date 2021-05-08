@@ -118,7 +118,7 @@ func ParseTimeInterval(openingHour string) (interval TimeInterval, err error) {
 func calculateHour(time string, am_pm string) uint8 {
 	t := strings.Split(time, ":")
 	hour, err := strconv.ParseUint(t[0], 10, 8)
-	utils.CheckErrImmediate(err, utils.LogError)
+	utils.LogErrorWithLevel(err, utils.LogError)
 
 	if am_pm == "AM" || am_pm == "am" {
 		return uint8(hour)

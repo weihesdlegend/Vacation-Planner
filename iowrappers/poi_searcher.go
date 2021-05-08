@@ -106,7 +106,7 @@ func (poiSearcher PoiSearcher) NearbySearch(context context.Context, request *Pl
 	}
 
 	cacheErr = poiSearcher.redisClient.SetMapsLastSearchTime(context, location, request.PlaceCat, currentTime.Format(time.RFC3339))
-	utils.CheckErrImmediate(cacheErr, utils.LogError)
+	utils.LogErrorWithLevel(cacheErr, utils.LogError)
 
 	maxResultNum := utils.MinInt(len(cachedPlaces), int(request.MaxNumResults))
 
@@ -116,7 +116,7 @@ func (poiSearcher PoiSearcher) NearbySearch(context context.Context, request *Pl
 
 	// initiate a new external search
 	newPlaces, mapsNearbySearchErr := poiSearcher.mapsClient.NearbySearch(context, request)
-	utils.CheckErrImmediate(mapsNearbySearchErr, utils.LogError)
+	utils.LogErrorWithLevel(mapsNearbySearchErr, utils.LogError)
 
 	request.Radius = originalSearchRadius // restore search radius
 
