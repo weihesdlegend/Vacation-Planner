@@ -60,7 +60,7 @@ func KnapsackV1(places []Place, interval QueryTimeInterval, budget uint) (result
 		//INITIALIZE 0,0
 		if uint8(staytime) <= timeLimit && int(math.Ceil(places[k].Price)) <= int(budget) && places[k].IsOpenBetween(interval, uint8(staytime)) {
 			tempPlaces = append(current[0][0].solution, places[k])
-			tempScore = Score(tempPlaces)
+			tempScore = ScoreNoDistance(tempPlaces)
 			if tempScore > next[staytime][int(math.Ceil(places[k].GetPrice()))].score {
 				next[staytime][int(math.Round(places[k].GetPrice()))].score = tempScore
 				next[staytime][int(math.Round(places[k].GetPrice()))].solution = append(make([]Place, 0, len(tempPlaces)), tempPlaces...)
@@ -79,7 +79,7 @@ func KnapsackV1(places []Place, interval QueryTimeInterval, budget uint) (result
 						tempi = i + int(staytime)
 						tempj = j + int(math.Ceil(places[k].GetPrice()))
 						tempPlaces = append(current[i][j].solution, places[k])
-						tempScore = Score(tempPlaces)
+						tempScore = ScoreNoDistance(tempPlaces)
 						if tempScore > next[tempi][tempj].score {
 							next[tempi][tempj].score = tempScore
 							next[tempi][tempj].solution = append(make([]Place, 0, len(tempPlaces)), tempPlaces...)
