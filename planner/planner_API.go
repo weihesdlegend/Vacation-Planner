@@ -151,7 +151,7 @@ func (planner *MyPlanner) SingleDayTimeCostPlanHandler(ctx *gin.Context) {
 	searchRadius_, _ := strconv.ParseUint(radius, 10, 32)
 	location := strings.Join([]string{city, country}, ",")
 	budgetUint, budgetParsingErr := strconv.ParseUint(budget, 10, 32)
-	if budgetParsingErr != nil {
+	if budgetUint==0 || budgetParsingErr != nil {
 		ctx.String(http.StatusBadRequest, "invalid input of budget %s", budget)
 		return
 	}
@@ -171,9 +171,13 @@ func (planner *MyPlanner) SingleDayTimeCostPlanHandler(ctx *gin.Context) {
 	}
 
 	//do knapsack
-	result, totalCost, totalTimeSpent:= matching.Knapsack(places, knapsackInterval, uint(budgetUint))
+	result, totalCost, totalTimeSpent, err := matching.Knapsack(places, knapsackInterval, uint(budgetUint))
+	if err != nil {
+		ctx.String(http.StatusBadRequest, err.Error())
+		return
+	}
 	if result == nil {
-		ctx.JSON(http.StatusInternalServerError, "no plan could be provided")
+		ctx.JSON(http.StatusOK, gin.H{"Error": "no plan could be provided"})
 		return
 	}
 	ctx.JSON(http.StatusOK, gin.H{"Time Budget Plan": result, "Cost":totalCost, "Time":totalTimeSpent})

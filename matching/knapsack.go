@@ -1,6 +1,8 @@
 package matching
 
 import (
+	"errors"
+	"fmt"
 	"github.com/weihesdlegend/Vacation-planner/POI"
 	"math"
 )
@@ -58,10 +60,14 @@ func (recordTable *knapsackRecordTable) update() {
 	KnapsackV1 v2 uses sparse matrix like storage for step values and saves memory
 	KnapsackV1 v1 is migrated to knapsack_old_test_only.go
 */
-func Knapsack(places []Place, interval QueryTimeInterval, budget uint) (results []Place, totalCost uint, totalTimeSpent uint8) {
+func Knapsack(places []Place, interval QueryTimeInterval, budget uint) (results []Place, totalCost uint, totalTimeSpent uint8, err error) {
 	//Initialize knapsack data structures
 	var recordTable knapsackRecordTable
 	timeLimit := interval.EndHour - interval.StartHour
+	if timeLimit<=0 {
+		err = errors.New(fmt.Sprintf("Invalid traveltime %d hours between start time: %d and endtime: %d",timeLimit, interval.StartHour, interval.EndHour))
+		return
+	}
 	rt := &recordTable
 	rt.Init(timeLimit, budget)
 	optimalNode := knapsackNodeRecord{0, 0, SelectionThreshold, make([]Place, 0)}
@@ -98,5 +104,5 @@ func Knapsack(places []Place, interval QueryTimeInterval, budget uint) (results 
 			}
 		}
 	}
-	return optimalNode.Solution, optimalNode.cost, optimalNode.timeUsed
+	return optimalNode.Solution, optimalNode.cost, optimalNode.timeUsed, nil
 }
