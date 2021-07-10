@@ -436,7 +436,7 @@ func (planner MyPlanner) SetupRouter(serverPort string) *http.Server {
 	}
 
 	svr := &http.Server{
-		Addr:         ":" + serverPort,
+		Addr:         "0.0.0.0:" + serverPort,
 		Handler:      myRouter,
 		ReadTimeout:  ServerTimeout,
 		WriteTimeout: ServerTimeout,
