@@ -28,7 +28,11 @@ func TestKnapsack(t *testing.T) {
 	if len(result) == 0 {
 		t.Error("No result is returned.")
 	}
-	result2, totalCost, totalTimeSpent := matching.Knapsack(places, querystart, budget)
+	result2, totalCost, totalTimeSpent, err := matching.Knapsack(places, querystart, budget)
+	if err != nil {
+		t.Error("Error message: #{err.Error()}")
+	}
+
 	t.Logf("total cost of the trip is %d", totalCost)
 	t.Logf("total time of the trip is %d", totalTimeSpent)
 
